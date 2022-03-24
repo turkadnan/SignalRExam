@@ -1,0 +1,58 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-2">
+        <div id="connectionState">
+        </div>
+        <div class="mb-3">
+            <label for="name" class="form-label">Mesaj :</label>
+            <input type="text" class="form-control" id="txtName" placeholder="">
+        </div>
+        <hr />
+        <button class="btn btn-primary" id="btnSenderName">Gönder</button>
+        <hr />
+        <div class="clearfix"></div>
+        <div class="col-md-8">
+            <ul class="list-group" id="listName">
+            </ul>
+        </div>
+    </div>
+</div>
+@section Scripts
+{
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+
+    <script>
+        debugger;
+        var connection = new signalR.HubConnectionBuilder().withUrl("http://localhost:41023/MessageHub").build();
+
+        console.log(connection.connectionState)
+
+        function ShowConnectionState() {
+            $('#connectionState').html(`<div class="alert alert-success">Bağlantı Durumu : ${connection.state} </div>`);
+        }
+
+        //SignalR connection başlatılıyor
+        connection.start().then(() => {
+            ShowConnectionState();
+        }).catch((err) => {
+            ShowConnectionState();
+            console.log('Hata : ');
+        });
+
+        $('#btnSenderName').click(() => {
+            connection.invoke("SendName", $('#txtName').val());
+            $('#txtName').val('');
+            $('#txtName').focus();
+        })
+
+        //MessageHub içerisinde oluşturulan ReceiveName adındaki metod (kanal) dinleniyor
+        connection.on("ReceiveName", (name) => {
+            $('#listName').append(`<li class="list-group-item"> ${name}</li>`)
+        })
+    </script>
+}
